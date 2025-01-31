@@ -2,15 +2,14 @@
   "nodes": {
     "apptiva-flake": {
       "inputs": {
-        "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs"
+        "flake-parts": "flake-parts"
       },
       "locked": {
-        "lastModified": 1738337391,
-        "narHash": "sha256-ckep6pezaWOiqLJaZuVU1JrWQZ8/8ArsFb8AI7/WIvI=",
+        "lastModified": 1738337851,
+        "narHash": "sha256-ahVdnvn8v31QF7tE6QKYzMiwPqjyKNYpUZRg2XgfnCY=",
         "owner": "apptivaag",
         "repo": "apptiva-flake",
-        "rev": "33ec548d909c1b5d396265344b89c7f8eada8625",
+        "rev": "465ce3aa359ad0f2c59cadbd7c5e3b9419eefda5",
         "type": "github"
       },
       "original": {
@@ -65,26 +64,10 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/e9b51731911566bbf7e4895475a87fe06961de0b.tar.gz"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1738142207,
-        "narHash": "sha256-NGqpVVxNAHwIicXpgaVqJEJWeyqzoQJ9oc8lnK9+WC4=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "9d3ae807ebd2981d593cddd0080856873139aa40",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "apptiva-flake": "apptiva-flake",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
