@@ -5,6 +5,6 @@
 
   outputs = inputs: {
     lib = import ./lib.nix { flake-parts = inputs.flake-parts; };
-    flakeModules.apptiva = import ./apptiva.nix;
+    flakeModules.apptiva = import ./modules;
   };
 }

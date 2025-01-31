@@ -4,7 +4,7 @@
     args: module:
     flake-parts.lib.mkFlake args {
       imports = [
-        ./apptiva.nix
+        ./modules
         module
       ];
     };
