@@ -8,13 +8,5 @@
     inputs:
     inputs.apptiva-flake.lib.mkFlake { inherit inputs; } ({
       appName = "apptiva-flake";
-      perSystem =
-        { pkgs, ... }:
-        {
-          devDependencies = [ pkgs.nodejs ];
-          targets.local.environment = {
-            FOO = "BAR";
-          };
-        };
     });
 }

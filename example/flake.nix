@@ -12,7 +12,14 @@
       perSystem =
         { pkgs, ... }:
         {
-          devDependencies = [ pkgs.nodejs ];
+          devDependencies = [
+            pkgs.nodejs
+            pkgs.sops
+          ];
+          targets.local.environment = {
+            FOO = "BAR";
+            SECRET_FOO = "ref+sops://example/secrets.yaml#SECRET_FOO";
+          };
         };
     });
 }
