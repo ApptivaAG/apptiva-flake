@@ -1,5 +1,5 @@
 {
-  allTargets =
+  perSystem.allTargets =
     {
       name,
       lib,

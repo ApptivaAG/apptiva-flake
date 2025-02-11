@@ -12,6 +12,9 @@
         { pkgs, ... }:
         {
           devDependencies = [ pkgs.nodejs ];
+          targets.local.environment = {
+            FOO = "BAR";
+          };
         };
     });
 }

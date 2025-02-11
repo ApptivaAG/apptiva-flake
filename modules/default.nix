@@ -4,7 +4,7 @@
     ./dependencies.nix
     ./default-dependencies.nix
     ./dev-shell.nix
-    ./targets.nix
+    ./targets
     ./kubernetes.nix
   ];
   systems = [
