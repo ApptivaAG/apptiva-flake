@@ -8,8 +8,16 @@ let
   rootConfig = config;
 in
 {
+  imports = [
+    ./kubernetes
+  ];
   perSystem =
-    { pkgs, config, ... }:
+    {
+      pkgs,
+      system,
+      config,
+      ...
+    }:
     {
       options = {
         allTargets = lib.mkOption {
@@ -24,17 +32,35 @@ in
                 config.allTargets
               ];
               specialArgs = {
-                appName = rootConfig.appName;
+                inherit pkgs system rootConfig;
+                systemConfig = config;
               };
             }
           );
         };
+        targetConfigurations = lib.mkOption {
+          type = lib.types.anything;
+          default = lib.mapAttrs (name: value: value.configuration) config.targets;
+        };
+        targetConfigurationsFile = lib.mkOption {
+          type = lib.types.package;
+          default = pkgs.writeText "target-configurations.json" (builtins.toJSON config.targetConfigurations);
+        };
+        substitute-secrets = lib.mkOption {
+          type = lib.types.package;
+          default = pkgs.writeShellApplication {
+            name = "substitute-secrets";
+            runtimeInputs = [
+              pkgs.vals
+            ];
+            text = ''
+              vals eval -f - -o json
+            '';
+          };
+        };
       };
       config =
         let
-          allEnvironments = pkgs.writeText "environments.json" (
-            builtins.toJSON (lib.mapAttrs (name: value: value.environment) config.targets)
-          );
           json-to-exports = pkgs.writeShellApplication {
             name = "json-to-exports";
             runtimeInputs = [
@@ -46,14 +72,32 @@ in
           };
         in
         {
+          packages.get-target-from-file = pkgs.writeShellApplication {
+            name = "get-target-from-file";
+            runtimeInputs = [
+              pkgs.jq
+            ];
+            text = ''
+              jq -r ".$2" < "$1"
+            '';
+          };
+          packages.get-target = pkgs.writeShellApplication {
+            name = "get-target";
+            runtimeInputs = [
+              config.packages.get-evaluated-target-from-file
+              config.substitute-secrets
+            ];
+            text = ''
+              get-evaluated-target-from-file ${config.targetConfigurationsFile} "$1" | substitute-secrets
+            '';
+          };
           packages.target-environment-json = pkgs.writeShellApplication {
             name = "target-environment-json";
             runtimeInputs = [
-              pkgs.jq
-              pkgs.vals
+              config.packages.get-target
             ];
             text = ''
-              jq ".$1" < ${allEnvironments} | vals eval -f - -o json
+              get-target "$1.environment"
             '';
           };
           packages.target-environment-exports = pkgs.writeShellApplication {

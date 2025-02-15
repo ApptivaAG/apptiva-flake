@@ -1,0 +1,4 @@
+{{- range $resource := .Values.resources -}}
+---
+{{- $resource | toJson }}
+{{ end }}

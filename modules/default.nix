@@ -5,7 +5,6 @@
     ./default-dependencies.nix
     ./dev-shell.nix
     ./targets
-    ./kubernetes.nix
   ];
   systems = [
     "x86_64-linux"

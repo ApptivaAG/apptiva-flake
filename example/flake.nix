@@ -16,9 +16,24 @@
             pkgs.nodejs
             pkgs.sops
           ];
-          targets.local.environment = {
-            FOO = "BAR";
-            SECRET_FOO = "ref+sops://example/secrets.yaml#SECRET_FOO";
+          targets.local = {
+            environment = {
+              FOO = "BAR";
+              SECRET_FOO = "ref+sops://example/secrets.yaml#SECRET_FOO";
+            };
+            kubernetes = {
+              enable = true;
+              image = "nginx";
+              namespace = "apptiva-flake-example";
+              cpu = {
+                limit = "100m";
+                request = "100m";
+              };
+              memory = {
+                limit = "100Mi";
+                request = "100Mi";
+              };
+            };
           };
         };
     });
