@@ -84,11 +84,11 @@ in
           packages.get-target = pkgs.writeShellApplication {
             name = "get-target";
             runtimeInputs = [
-              config.packages.get-evaluated-target-from-file
+              config.packages.get-target-from-file
               config.substitute-secrets
             ];
             text = ''
-              get-evaluated-target-from-file ${config.targetConfigurationsFile} "$1" | substitute-secrets
+              get-target-from-file ${config.targetConfigurationsFile} "$1" | substitute-secrets
             '';
           };
           packages.target-environment-json = pkgs.writeShellApplication {
