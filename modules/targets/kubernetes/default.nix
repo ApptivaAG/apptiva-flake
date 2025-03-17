@@ -14,8 +14,9 @@ in
       targetKubernetesSettings = pkgs.writeText "target-kubernetes-settings.json" (
         builtins.toJSON (
           lib.mapAttrs (name: value: ({
-            namespace = value.kubernetes.namespace;
-            resources = lib.mapAttrsToList (name: value: value) value.kubernetes.resources;
+            resources = {
+              resources = lib.mapAttrsToList (name: value: value) value.kubernetes.resources;
+            };
           })) config.targets
         )
       );
@@ -38,18 +39,30 @@ in
             };
             config = {
               deployCommand = "${systemConfig.packages.deploy-to-kubernetes}/bin/deploy-to-kubernetes";
+              buildEnvironment = {
+                KUBERNETES_RESOURCES.value = "${targetKubernetesSettings}";
+                KUBERNETES_NAMESPACE.value = config.kubernetes.namespace;
+              };
             };
           };
+        packages.print-kubernetes-resources = pkgs.writeShellApplication {
+          name = "print-kubernetes-resources";
+          runtimeInputs = [
+            systemConfig.packages.get-target-value
+            systemConfig.substitute-secrets
+          ];
+          text = ''
+            TARGET_CONFIGURATIONS=$KUBERNETES_RESOURCES get-target-value resources | substitute-secrets
+          '';
+        };
         packages.deploy-to-kubernetes = pkgs.writeShellApplication {
           name = "deploy-to-kubernetes";
           runtimeInputs = [
             pkgs.kubernetes-helm
-            systemConfig.packages.get-target-from-file
-            systemConfig.substitute-secrets
+            systemConfig.packages.print-kubernetes-resources
           ];
           text = ''
-            NAMESPACE=$(get-target-from-file ${targetKubernetesSettings} "$1.namespace")
-            get-target-from-file ${targetKubernetesSettings} "$1" | substitute-secrets | helm upgrade --install -f - --namespace "$NAMESPACE" --create-namespace app ${./helm}
+            print-kubernetes-resources | helm upgrade --install -f - --namespace "$KUBERNETES_NAMESPACE" --create-namespace app ${./helm}
           '';
         };
       };

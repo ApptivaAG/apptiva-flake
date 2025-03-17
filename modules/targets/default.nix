@@ -10,6 +10,7 @@ in
 {
   imports = [
     ./kubernetes
+    ./container.nix
   ];
   perSystem =
     {
@@ -72,50 +73,45 @@ in
           };
         in
         {
-          packages.get-target-from-file = pkgs.writeShellApplication {
-            name = "get-target-from-file";
+          packages.get-target-value = pkgs.writeShellApplication {
+            name = "get-target-value";
             runtimeInputs = [
               pkgs.jq
             ];
             text = ''
-              jq -r ".$2" < "$1"
-            '';
-          };
-          packages.get-target = pkgs.writeShellApplication {
-            name = "get-target";
-            runtimeInputs = [
-              config.packages.get-target-from-file
-              config.substitute-secrets
-            ];
-            text = ''
-              get-target-from-file ${config.targetConfigurationsFile} "$1" | substitute-secrets
+              jq -r ".$TARGET.$1" < "$TARGET_CONFIGURATIONS"
             '';
           };
           packages.target-environment-json = pkgs.writeShellApplication {
             name = "target-environment-json";
             runtimeInputs = [
-              config.packages.get-target
+              config.packages.get-target-value
             ];
             text = ''
-              get-target "$1.environment"
+              get-target-value environment
             '';
           };
           packages.target-environment-exports = pkgs.writeShellApplication {
             name = "target-environment-exports";
             runtimeInputs = [
-              config.packages.target-environment-json
+              config.packages.get-target-value
+              config.substitute-secrets
               json-to-exports
             ];
             text = ''
-              target-environment-json "$1" | json-to-exports
+              get-target-value "environment.$1.values" | substitute-secrets | json-to-exports
+              get-target-value "environment.$1.script"
             '';
           };
           devDependencies = [
+            config.packages.get-target-value
             config.packages.target-environment-exports
           ];
           shellHook = ''
+            export TARGET_CONFIGURATIONS=${config.targetConfigurationsFile}
             export TARGET=''${TARGET:-local}
-            source <(target-environment-exports $TARGET)
+            source <(target-environment-exports runtime)
+            source <(target-environment-exports build)
           '';
         };
     };

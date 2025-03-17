@@ -169,8 +169,9 @@ in
           [ ];
 
       env = lib.mapAttrsToList (name: value: {
-        inherit name value;
-      }) target.environment;
+        inherit name;
+        value = "ref+envsubst://$" + name;
+      }) target.runtimeEnvironment;
     };
 
     ingress = {

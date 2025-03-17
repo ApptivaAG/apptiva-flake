@@ -17,10 +17,7 @@
             pkgs.sops
           ];
           targets.local = {
-            environment = {
-              FOO = "BAR";
-              SECRET_FOO = "ref+sops://example/secrets.yaml#SECRET_FOO";
-            };
+            secretsFile = ./secrets.yaml;
             kubernetes = {
               enable = true;
               image = "nginx";
@@ -33,6 +30,11 @@
                 limit = "100Mi";
                 request = "100Mi";
               };
+            };
+            runtimeEnvironment = {
+              FOO.value = "BAR";
+              SECRET_FOO.secret = "SECRET_FOO";
+              UGGA.command = "AGGA";
             };
           };
         };
