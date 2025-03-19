@@ -44,7 +44,16 @@ in
       default = { };
     };
     image = lib.mkOption {
-      type = lib.types.str;
+      type = json;
+      default = {
+        _glueson = "evaluate";
+        code = "`\${registryUrl}\${imageName}:\${imageTag}`";
+        params = {
+          registryUrl = target.container.registryUrl;
+          imageName = target.container.imageName;
+          imageTag = target.container.imageTag;
+        };
+      };
     };
     port = lib.mkOption {
       type = lib.types.nullOr lib.types.int;
