@@ -39,9 +39,6 @@ in
               };
             }
           );
-          default = {
-            local = { };
-          };
         };
         targetConfigurations = lib.mkOption {
           type = lib.types.anything;
@@ -74,6 +71,7 @@ in
             }) targetConfig.packages
           ) config.targets
         );
+        targets.local = { };
       };
     };
 }
