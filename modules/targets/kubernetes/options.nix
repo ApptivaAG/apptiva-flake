@@ -169,8 +169,7 @@ in
           [ ];
 
       env = lib.mapAttrsToList (name: value: {
-        inherit name;
-        value = "ref+envsubst://$" + name;
+        inherit name value;
       }) target.runtimeEnvironment;
     };
 

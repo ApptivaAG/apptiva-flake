@@ -3,8 +3,9 @@
     ./app-name.nix
     ./dependencies.nix
     ./default-dependencies.nix
-    ./dev-shell.nix
     ./targets
+    ./nixpkgs.nix
+    ./secrets.nix
   ];
   systems = [
     "x86_64-linux"

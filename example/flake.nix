@@ -10,18 +10,20 @@
       appName = "example-app";
 
       perSystem =
-        { pkgs, ... }:
+        { pkgs, config, ... }:
         {
           devDependencies = [
             pkgs.nodejs
             pkgs.sops
           ];
-          targets.local = {
-            secretsFile = ./secrets.yaml;
+          secrets.secretsFile = ./secrets.yaml;
+          allTargets = {
+            runtimeEnvironment = {
+              FOO = "1";
+              SECRET_FOO = config.secrets.getSecret "SECRET_FOO";
+            };
             kubernetes = {
-              enable = true;
               image = "nginx";
-              namespace = "apptiva-flake-example";
               cpu = {
                 limit = "100m";
                 request = "100m";
@@ -31,10 +33,10 @@
                 request = "100Mi";
               };
             };
-            runtimeEnvironment = {
-              FOO.value = "BAR";
-              SECRET_FOO.secret = "SECRET_FOO";
-              UGGA.command = "AGGA";
+          };
+          targets.prod = {
+            kubernetes = {
+              enable = true;
             };
           };
         };

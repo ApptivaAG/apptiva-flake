@@ -9,39 +9,17 @@
 }:
 let
   json = import ../../json.nix { inherit lib; };
-  targetConfig = config;
-  environmentType = lib.types.attrsOf (
-    lib.types.submodule (
-      { config, name, ... }:
-      {
-        options = {
-          value = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = if config.secret != null then "ref+sops://${targetConfig.secretsFile}#${name}" else null;
-          };
-          secret = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = null;
-          };
-          command = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = null;
-          };
-        };
-      }
-    )
-  );
-  buildEnvironment = environment: {
-    values = lib.mapAttrs (key: value: value.value) (
-      lib.filterAttrs (key: value: value.value != null) environment
-    );
-    script =
-      let
-        commandEnvironments = lib.filterAttrs (key: value: value.command != null) environment;
-        commands = lib.mapAttrs (key: value: ''export ${key}="${value.command}"'') commandEnvironments;
-      in
-      lib.concatLines (lib.attrValues commands);
+  environmentType = lib.types.attrsOf json;
+  json-to-exports = pkgs.writeShellApplication {
+    name = "json-to-exports";
+    runtimeInputs = [
+      pkgs.jq
+    ];
+    text = ''
+      jq -r 'to_entries|map("export \(.key)=\(.value|tostring|@sh);")|.[]' <&0
+    '';
   };
+
 in
 {
   options = {
@@ -53,7 +31,7 @@ in
       type = lib.types.str;
       default = "${rootConfig.appName}-${name}.apps.apptiva.ch";
     };
-    buildEnvironment = lib.mkOption {
+    devEnvironment = lib.mkOption {
       type = environmentType;
       default = { };
     };
@@ -61,29 +39,27 @@ in
       type = environmentType;
       default = { };
     };
-    deployCommand = lib.mkOption {
-      type = lib.types.str;
-      default =
-        let
-          package = pkgs.writeShellApplication {
-            name = "no-deploy-command-configured";
-            text = ''
-              echo "No deploy command specified for target $1"
-            '';
-          };
-        in
-        "${package}/bin/no-deploy-command-configured";
-    };
-    secretsFile = lib.mkOption {
-      type = lib.types.path;
-    };
     configuration = lib.mkOption {
       type = json;
       default = {
-        environment.runtime = buildEnvironment config.runtimeEnvironment;
-        environment.build = buildEnvironment config.buildEnvironment;
         deployCommand = "${config.deployCommand}";
       };
+    };
+    packages = lib.mkOption {
+      type = lib.types.attrsOf lib.types.package;
+      default = { };
+    };
+    shellHook = lib.mkOption {
+      type = lib.types.lines;
+      default = ''
+        source <(${config.packages.print-environment}/bin/print-environment | ${json-to-exports}/bin/json-to-exports)
+      '';
+    };
+  };
+  config = {
+    packages.print-environment = pkgs.writeGluesonApplication {
+      name = "print-environment";
+      value = config.devEnvironment // config.runtimeEnvironment;
     };
   };
 }

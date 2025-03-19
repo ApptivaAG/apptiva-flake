@@ -11,20 +11,14 @@ in
     { config, pkgs, ... }:
     let
       systemConfig = config;
-      targetKubernetesSettings = pkgs.writeText "target-kubernetes-settings.json" (
-        builtins.toJSON (
-          lib.mapAttrs (name: value: ({
-            resources = {
-              resources = lib.mapAttrsToList (name: value: value) value.kubernetes.resources;
-            };
-          })) config.targets
-        )
-      );
     in
     {
       config = {
         allTargets =
           { config, ... }:
+          let
+            resources = lib.mapAttrsToList (name: value: value) config.kubernetes.resources;
+          in
           {
             options.kubernetes = lib.mkOption {
               type = lib.types.submoduleWith {
@@ -37,34 +31,41 @@ in
                 };
               };
             };
-            config = {
-              deployCommand = "${systemConfig.packages.deploy-to-kubernetes}/bin/deploy-to-kubernetes";
-              buildEnvironment = {
-                KUBERNETES_RESOURCES.value = "${targetKubernetesSettings}";
-                KUBERNETES_NAMESPACE.value = config.kubernetes.namespace;
+            config = lib.mkIf config.kubernetes.enable {
+              packages.print-kubernetes-resources = pkgs.writeGluesonApplication {
+                name = "print-kubernetes-resources";
+                value = resources;
+              };
+              packages.deploy = pkgs.writeGluesonApplication {
+                name = "deploy";
+                value = {
+                  _glueson = "execute";
+                  command = "helm upgrade --install -f - --namespace \${namespace} --create-namespace app ${./helm}";
+                  params = {
+                    namespace = config.kubernetes.namespace;
+                  };
+                  stdin = {
+                    inherit resources;
+                  };
+                  output = "log";
+                };
+              };
+              packages.undeploy = pkgs.writeGluesonApplication {
+                name = "deploy";
+                value = {
+                  _glueson = "execute";
+                  command = "helm uninstall --namespace \${namespace} app";
+                  params = {
+                    namespace = config.kubernetes.namespace;
+                  };
+                  stdin = {
+                    inherit resources;
+                  };
+                  output = "log";
+                };
               };
             };
           };
-        packages.print-kubernetes-resources = pkgs.writeShellApplication {
-          name = "print-kubernetes-resources";
-          runtimeInputs = [
-            systemConfig.packages.get-target-value
-            systemConfig.substitute-secrets
-          ];
-          text = ''
-            TARGET_CONFIGURATIONS=$KUBERNETES_RESOURCES get-target-value resources | substitute-secrets
-          '';
-        };
-        packages.deploy-to-kubernetes = pkgs.writeShellApplication {
-          name = "deploy-to-kubernetes";
-          runtimeInputs = [
-            pkgs.kubernetes-helm
-            systemConfig.packages.print-kubernetes-resources
-          ];
-          text = ''
-            print-kubernetes-resources | helm upgrade --install -f - --namespace "$KUBERNETES_NAMESPACE" --create-namespace app ${./helm}
-          '';
-        };
       };
     };
 }
