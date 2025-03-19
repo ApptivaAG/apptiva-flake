@@ -30,6 +30,7 @@ in
                   target = config;
                 };
               };
+              default = { };
             };
             config = lib.mkIf config.kubernetes.enable {
               packages.print-kubernetes-resources = pkgs.writeGluesonApplication {
