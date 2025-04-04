@@ -41,28 +41,29 @@ in
                 name = "deploy";
                 value = {
                   _glueson = "execute";
-                  command = "helm upgrade --install -f - --namespace \${namespace} --create-namespace app ${./helm}";
+                  command = "helm upgrade --install -f - --namespace $namespace --create-namespace app $helm";
                   params = {
                     namespace = config.kubernetes.namespace;
+                    helm = "${./helm}";
                   };
                   stdin = {
                     inherit resources;
                   };
-                  output = "log";
+                  log = true;
                 };
               };
               packages.undeploy = pkgs.writeGluesonApplication {
                 name = "deploy";
                 value = {
                   _glueson = "execute";
-                  command = "helm uninstall --namespace \${namespace} app";
+                  command = "helm uninstall --namespace $namespace app";
                   params = {
                     namespace = config.kubernetes.namespace;
                   };
                   stdin = {
                     inherit resources;
                   };
-                  output = "log";
+                  log = true;
                 };
               };
             };
