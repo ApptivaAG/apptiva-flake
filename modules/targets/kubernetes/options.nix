@@ -3,6 +3,8 @@
   appName,
   target,
   config,
+  systemConfig,
+  pkgs,
   ...
 }:
 let
@@ -82,6 +84,17 @@ in
     ingress = lib.mkOption {
       type = json;
       default = { };
+    };
+    kubeconfigContent = lib.mkOption {
+      type = json;
+      default = systemConfig.secrets.getSecret "SECRET_FOO";
+    };
+    kubeconfigFile = lib.mkOption {
+      type = json;
+      default = {
+        _glueson = "temporary-file";
+        content = config.kubeconfigContent;
+      };
     };
   };
   config = {

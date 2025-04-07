@@ -27,6 +27,7 @@ in
                 ];
                 specialArgs = {
                   inherit (rootConfig) appName;
+                  inherit systemConfig pkgs;
                   target = config;
                 };
               };
@@ -45,6 +46,9 @@ in
                   params = {
                     namespace = config.kubernetes.namespace;
                     helm = "${./helm}";
+                  };
+                  env = {
+                    KUBECONFIG = config.kubernetes.kubeconfigFile;
                   };
                   stdin = {
                     inherit resources;

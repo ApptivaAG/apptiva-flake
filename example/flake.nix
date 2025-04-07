@@ -32,6 +32,7 @@
                 limit = "100Mi";
                 request = "100Mi";
               };
+              kubeconfigFile = "";
             };
           };
           targets.prod = {
