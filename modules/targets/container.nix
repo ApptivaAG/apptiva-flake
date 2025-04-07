@@ -1,7 +1,12 @@
-{ self, ... }:
+{
+  self,
+  lib,
+  apptiva-lib,
+  ...
+}:
 {
   perSystem =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
       systemConfig = config;
     in
@@ -24,7 +29,7 @@
               default = "_json_key";
             };
             registryPassword = lib.mkOption {
-              type = lib.types.str;
+              type = apptiva-lib.types.json;
               default = systemConfig.secrets.getSecret "CONTAINER_REGISTRY_PASSWORD";
             };
             imageName = lib.mkOption {
@@ -34,6 +39,7 @@
             imageTag = lib.mkOption {
               type = lib.types.str;
               default = self.rev or "dirty";
+            };
             imagePath = lib.mkOption {
               type = apptiva-lib.types.json;
               default = {
@@ -45,10 +51,39 @@
                   imageTag = config.container.imageTag;
                 };
               };
-              };
             };
+            streamLayeredImage = lib.mkOption {
+              type = lib.types.nullOr lib.types.package;
+              default = null;
             };
           };
+          config =
+            let
+              push-layered-image-stream = pkgs.writeShellApplication {
+                name = "push-layered-image-stream";
+                runtimeInputs = [
+                  pkgs.skopeo
+                  pkgs.gzip
+                ];
+                text = ''"$STREAM_LAYERED_IMAGE" | gzip --fast | skopeo copy docker-archive:/dev/stdin "docker://$IMAGE_PATH" --dest-creds "$USERNAME:$PASSWORD" --insecure-policy'';
+              };
+            in
+            {
+              packages.push-container-image = pkgs.writeGluesonApplication {
+                name = "push-container-image";
+                value = {
+                  _glueson = "execute";
+                  command = "${push-layered-image-stream}/bin/push-layered-image-stream";
+                  env = {
+                    STREAM_LAYERED_IMAGE = "${config.container.streamLayeredImage}";
+                    IMAGE_PATH = config.container.imagePath;
+                    USERNAME = config.container.registryUsername;
+                    PASSWORD = config.container.registryPassword;
+                  };
+                  log = true;
+                };
+              };
+            };
         };
     };
 }

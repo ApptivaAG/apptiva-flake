@@ -22,7 +22,10 @@
           };
         };
         secretsFile = lib.mkOption {
-          type = lib.types.path;
+          type = lib.types.oneOf [
+            lib.types.path
+            lib.types.str
+          ];
         };
         sopsEnv = lib.mkOption {
           type = apptiva-lib.types.json;

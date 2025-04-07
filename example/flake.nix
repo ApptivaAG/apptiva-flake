@@ -16,14 +16,13 @@
             pkgs.nodejs
             pkgs.sops
           ];
-          secrets.secretsFile = ./secrets.yaml;
+          secrets.secretsFile = "../secrets.yaml";
           allTargets = {
             runtimeEnvironment = {
               FOO = "1";
               SECRET_FOO = config.secrets.getSecret "SECRET_FOO";
             };
             kubernetes = {
-              image = "nginx";
               cpu = {
                 limit = "100m";
                 request = "100m";
@@ -38,6 +37,14 @@
           targets.prod = {
             kubernetes = {
               enable = true;
+            };
+            container.streamLayeredImage = pkgs.dockerTools.streamLayeredImage {
+              name = "container";
+              config.Cmd = [
+                "${pkgs.nodejs}/bin/node"
+                "--eval"
+                "require('http').createServer((req,res)=>res.end('hello apptiva!')).listen(80)"
+              ];
             };
           };
         };
