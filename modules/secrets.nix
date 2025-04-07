@@ -1,3 +1,4 @@
+{ apptiva-lib, ... }:
 {
   perSystem =
     {
@@ -17,10 +18,25 @@
               name = "[\"${name}\"]";
               secretsFile = config.secrets.secretsFile;
             };
+            env = config.secrets.sopsEnv;
           };
         };
         secretsFile = lib.mkOption {
           type = lib.types.path;
+        };
+        sopsEnv = lib.mkOption {
+          type = apptiva-lib.types.json;
+          default = {
+            GOOGLE_APPLICATION_CREDENTIALS = {
+              _glueson = "evaluate";
+              code = ''
+                env.SECRET_DECRYPTION_SERVICE_ACCOUNT?{
+                  _glueson: "temporary-file",
+                  content: env.SECRET_DECRYPTION_SERVICE_ACCOUNT
+                }:""
+              '';
+            };
+          };
         };
       };
     };
