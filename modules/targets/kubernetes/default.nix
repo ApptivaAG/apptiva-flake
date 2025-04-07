@@ -39,37 +39,31 @@ in
                 name = "print-kubernetes-resources";
                 value = resources;
               };
-              packages.deploy = pkgs.writeGluesonApplication {
-                name = "deploy";
-                value = {
-                  _glueson = "execute";
-                  command = "${pkgs.kubernetes-helm}/bin/helm upgrade --install -f - --namespace $namespace --create-namespace app $helm";
-                  params = {
-                    namespace = config.kubernetes.namespace;
-                    helm = "${./helm}";
-                  };
-                  env = {
-                    KUBECONFIG = config.kubernetes.kubeconfigFile;
-                  };
-                  stdin = {
-                    inherit resources;
-                  };
-                  log = true;
+              deploy = {
+                _glueson = "execute";
+                command = "${pkgs.kubernetes-helm}/bin/helm upgrade --install -f - --namespace $namespace --create-namespace app $helm";
+                params = {
+                  namespace = config.kubernetes.namespace;
+                  helm = "${./helm}";
                 };
+                env = {
+                  KUBECONFIG = config.kubernetes.kubeconfigFile;
+                };
+                stdin = {
+                  inherit resources;
+                };
+                log = true;
               };
-              packages.undeploy = pkgs.writeGluesonApplication {
-                name = "deploy";
-                value = {
-                  _glueson = "execute";
-                  command = "${pkgs.kubernetes-helm}/bin/helm uninstall --namespace $namespace app";
-                  params = {
-                    namespace = config.kubernetes.namespace;
-                  };
-                  stdin = {
-                    inherit resources;
-                  };
-                  log = true;
+              undeploy = {
+                _glueson = "execute";
+                command = "${pkgs.kubernetes-helm}/bin/helm uninstall --namespace $namespace app";
+                params = {
+                  namespace = config.kubernetes.namespace;
                 };
+                stdin = {
+                  inherit resources;
+                };
+                log = true;
               };
             };
           };

@@ -56,22 +56,20 @@
               type = lib.types.nullOr lib.types.package;
               default = null;
             };
-          };
-          config =
-            let
-              push-layered-image-stream = pkgs.writeShellApplication {
-                name = "push-layered-image-stream";
-                runtimeInputs = [
-                  pkgs.skopeo
-                  pkgs.gzip
-                ];
-                text = ''"$STREAM_LAYERED_IMAGE" | gzip --fast | skopeo copy docker-archive:/dev/stdin "docker://$IMAGE_PATH" --dest-creds "$USERNAME:$PASSWORD" --insecure-policy'';
-              };
-            in
-            {
-              packages.push-container-image = pkgs.writeGluesonApplication {
-                name = "push-container-image";
-                value = {
+            push-image = lib.mkOption {
+              type = apptiva-lib.types.json;
+              default =
+                let
+                  push-layered-image-stream = pkgs.writeShellApplication {
+                    name = "push-layered-image-stream";
+                    runtimeInputs = [
+                      pkgs.skopeo
+                      pkgs.gzip
+                    ];
+                    text = ''"$STREAM_LAYERED_IMAGE" | gzip --fast | skopeo copy docker-archive:/dev/stdin "docker://$IMAGE_PATH" --dest-creds "$USERNAME:$PASSWORD" --insecure-policy'';
+                  };
+                in
+                {
                   _glueson = "execute";
                   command = "${push-layered-image-stream}/bin/push-layered-image-stream";
                   env = {
@@ -82,8 +80,14 @@
                   };
                   log = true;
                 };
-              };
             };
+          };
+          config = {
+            packages.push-container-image = pkgs.writeGluesonApplication {
+              name = "push-container-image";
+              value = config.container.push-image;
+            };
+          };
         };
     };
 }

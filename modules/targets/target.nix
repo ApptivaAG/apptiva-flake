@@ -56,11 +56,25 @@ in
         source <(${config.packages.print-environment}/bin/print-environment | ${json-to-exports}/bin/json-to-exports)
       '';
     };
+    deploy = lib.mkOption {
+      type = apptiva-lib.types.json;
+    };
+    undeploy = lib.mkOption {
+      type = apptiva-lib.types.json;
+    };
   };
   config = {
     packages.print-environment = pkgs.writeGluesonApplication {
       name = "print-environment";
       value = config.devEnvironment // config.runtimeEnvironment;
+    };
+    packages.deploy = pkgs.writeGluesonApplication {
+      name = "deploy";
+      value = config.deploy;
+    };
+    packages.undeploy = pkgs.writeGluesonApplication {
+      name = "deploy";
+      value = config.undeploy;
     };
   };
 }
