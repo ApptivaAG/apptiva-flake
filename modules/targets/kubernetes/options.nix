@@ -87,7 +87,7 @@ in
     };
     kubeconfigContent = lib.mkOption {
       type = json;
-      default = systemConfig.secrets.getSecret "SECRET_FOO";
+      default = systemConfig.secrets.getSecret "KUBECONFIG_CONTENT";
     };
     kubeconfigFile = lib.mkOption {
       type = json;
