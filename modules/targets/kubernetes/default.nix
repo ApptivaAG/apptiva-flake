@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  apptiva-lib,
   ...
 }:
 let
@@ -27,7 +28,7 @@ in
                 ];
                 specialArgs = {
                   inherit (rootConfig) appName;
-                  inherit systemConfig pkgs;
+                  inherit systemConfig pkgs apptiva-lib;
                   target = config;
                 };
               };

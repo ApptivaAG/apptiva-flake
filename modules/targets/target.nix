@@ -1,15 +1,16 @@
 {
   name,
   lib,
+  apptiva-lib,
   config,
   pkgs,
   rootConfig,
   systemConfig,
+
   ...
 }:
 let
-  json = import ../../json.nix { inherit lib; };
-  environmentType = lib.types.attrsOf json;
+  environmentType = lib.types.attrsOf apptiva-lib.types.json;
   json-to-exports = pkgs.writeShellApplication {
     name = "json-to-exports";
     runtimeInputs = [
@@ -40,7 +41,7 @@ in
       default = { };
     };
     configuration = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = {
         deployCommand = "${config.deployCommand}";
       };

@@ -1,5 +1,6 @@
 {
   lib,
+  apptiva-lib,
   appName,
   target,
   config,
@@ -7,9 +8,6 @@
   pkgs,
   ...
 }:
-let
-  json = import ../../../json.nix { inherit lib; };
-in
 {
   options = {
     enable = lib.mkEnableOption false;
@@ -18,11 +16,11 @@ in
       default = "${appName}-${target.name}";
     };
     resources = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     deployment = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     replicas = lib.mkOption {
@@ -30,32 +28,24 @@ in
       default = 1;
     };
     strategy = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     template = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     pod = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     container = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     image = lib.mkOption {
-      type = json;
-      default = {
-        _glueson = "evaluate";
-        code = "`\${registryUrl}\${imageName}:\${imageTag}`";
-        params = {
-          registryUrl = target.container.registryUrl;
-          imageName = target.container.imageName;
-          imageTag = target.container.imageTag;
-        };
-      };
+      type = apptiva-lib.types.json;
+      default = target.container.imagePath;
     };
     port = lib.mkOption {
       type = lib.types.nullOr lib.types.int;
@@ -82,15 +72,15 @@ in
       default = target.hostname;
     };
     ingress = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = { };
     };
     kubeconfigContent = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = systemConfig.secrets.getSecret "KUBECONFIG_CONTENT";
     };
     kubeconfigFile = lib.mkOption {
-      type = json;
+      type = apptiva-lib.types.json;
       default = {
         _glueson = "temporary-file";
         content = config.kubeconfigContent;

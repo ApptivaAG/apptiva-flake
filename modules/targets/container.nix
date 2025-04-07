@@ -34,6 +34,19 @@
             imageTag = lib.mkOption {
               type = lib.types.str;
               default = self.rev or "dirty";
+            imagePath = lib.mkOption {
+              type = apptiva-lib.types.json;
+              default = {
+                _glueson = "evaluate";
+                code = "`\${registryUrl}\${imageName}:\${imageTag}`";
+                params = {
+                  registryUrl = config.container.registryUrl;
+                  imageName = config.container.imageName;
+                  imageTag = config.container.imageTag;
+                };
+              };
+              };
+            };
             };
           };
         };

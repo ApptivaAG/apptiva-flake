@@ -6,6 +6,7 @@
     ./targets
     ./nixpkgs.nix
     ./secrets.nix
+    ./apptiva-lib.nix
   ];
   systems = [
     "x86_64-linux"
