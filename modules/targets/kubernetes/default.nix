@@ -43,7 +43,7 @@ in
                 name = "deploy";
                 value = {
                   _glueson = "execute";
-                  command = "helm upgrade --install -f - --namespace $namespace --create-namespace app $helm";
+                  command = "${pkgs.kubernetes-helm}/bin/helm upgrade --install -f - --namespace $namespace --create-namespace app $helm";
                   params = {
                     namespace = config.kubernetes.namespace;
                     helm = "${./helm}";
@@ -61,7 +61,7 @@ in
                 name = "deploy";
                 value = {
                   _glueson = "execute";
-                  command = "helm uninstall --namespace $namespace app";
+                  command = "${pkgs.kubernetes-helm}/bin/helm uninstall --namespace $namespace app";
                   params = {
                     namespace = config.kubernetes.namespace;
                   };
