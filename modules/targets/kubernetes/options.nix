@@ -238,11 +238,12 @@
               requestPath = lib.mkDefault config.healthCheckPath;
             };
           };
-          targetRef = {
-            group = "";
-            kind = "Service";
-            name = "service";
-          };
+
+        };
+        targetRef = {
+          group = "";
+          kind = "Service";
+          name = "service";
         };
       };
     };
