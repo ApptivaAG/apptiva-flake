@@ -235,7 +235,7 @@
             type = "HTTP";
             httpHealthCheck = {
               port = config.port;
-              requestPath = config.healthCheckPath;
+              requestPath = lib.mkDefault config.healthCheckPath;
             };
           };
           targetRef = {
