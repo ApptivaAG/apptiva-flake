@@ -71,9 +71,17 @@
       type = lib.types.nullOr lib.types.str;
       default = target.hostname;
     };
-    ingress = lib.mkOption {
+    httpRoute = lib.mkOption {
       type = apptiva-lib.types.json;
       default = { };
+    };
+    healthCheckPolicy = lib.mkOption {
+      type = apptiva-lib.types.json;
+      default = { };
+    };
+    healthCheckPath = lib.mkOption {
+      type = lib.types.str;
+      default = "/";
     };
     kubeconfigContent = lib.mkOption {
       type = apptiva-lib.types.json;
@@ -98,7 +106,12 @@
             service = {
               apiVersion = "v1";
               kind = "Service";
-              metadata.name = "service";
+              metadata = {
+                name = "service";
+                annotations = {
+                  "cloud.google.com/neg" = "{\"exposed_ports\":{\"${config.port}\":{}}}";
+                };
+              };
               spec = {
                 selector.label = "pod";
                 ports = [
@@ -110,24 +123,7 @@
                 ];
               };
             };
-
-            ingress = config.ingress;
-
-            "letsencrypt-issuer" = {
-              apiVersion = "cert-manager.io/v1";
-              kind = "Issuer";
-              metadata.name = "letsencrypt";
-              spec.acme = {
-                email = "info@apptiva.ch";
-                server = "https://acme-v02.api.letsencrypt.org/directory";
-                privateKeySecretRef.name = "letsencrypt-secret";
-                solvers = [
-                  {
-                    http01.ingress.class = "nginx";
-                  }
-                ];
-              };
-            };
+            httpRoute = config.httpRoute;
           }
         else
           { }
@@ -185,38 +181,68 @@
       }) target.runtimeEnvironment;
     };
 
-    ingress = {
-      kind = "Ingress";
-      apiVersion = "networking.k8s.io/v1";
+    httpRoute = {
+      kind = "HTTPRoute";
+      apiVersion = "gateway.networking.k8s.io/v1";
       metadata = {
-        name = "ingress";
-        annotations = {
-          "cert-manager.io/issuer" = "letsencrypt";
-          "kubernetes.io/ingress.class" = "nginx";
-        };
+        name = "http-route";
       };
       spec = {
+        parentRefs = [
+          {
+            name = "shared-gateway";
+            namespace = "base";
+            sectionName = "https";
+          }
+        ];
+        hostnames = [ config.hostname ];
         rules = [
           {
-            host = config.hostname;
-            http.paths = [
+            matches = [
               {
-                path = "/";
-                pathType = "Prefix";
-                backend.service = {
-                  name = "service";
-                  port.number = config.port;
+                path = {
+                  type = "PathPrefix";
+                  value = "/";
                 };
+              }
+            ];
+            backendRefs = [
+              {
+                kind = "Service";
+                name = "service";
+                port = config.port;
               }
             ];
           }
         ];
-        tls = [
-          {
-            hosts = [ config.hostname ];
-            secretName = "certificate";
-          }
-        ];
+      };
+    };
+
+    healthCheckPolicy = {
+      kind = "HealthCheckPolicy";
+      apiVersion = "networking.gke.io/v1";
+      metadata = {
+        name = "health-check-policy";
+      };
+      spec = {
+        default = {
+          checkIntervalSec = 10;
+          timeoutSec = 5;
+          healthyThreshold = 1;
+          unhealthyThreshold = 3;
+          config = {
+            type = "HTTP";
+            httpHealthCheck = {
+              port = config.port;
+              requestPath = config.healthCheckPath;
+            };
+          };
+          targetRef = {
+            group = "";
+            kind = "Service";
+            name = "service";
+          };
+        };
       };
     };
   };
