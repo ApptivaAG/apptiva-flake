@@ -109,7 +109,7 @@
               metadata = {
                 name = "service";
                 annotations = {
-                  "cloud.google.com/neg" = "{\"exposed_ports\":{\"${config.port}\":{}}}";
+                  "cloud.google.com/neg" = "{\"exposed_ports\":{\"${toString config.port}\":{}}}";
                 };
               };
               spec = {
