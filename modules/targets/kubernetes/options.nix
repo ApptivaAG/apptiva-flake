@@ -124,6 +124,7 @@
               };
             };
             httpRoute = config.httpRoute;
+            healthCheckPolicy = config.healthCheckPolicy;
           }
         else
           { }
